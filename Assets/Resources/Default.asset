@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e1b3847037c4fd4f94d206581667c0a, type: 3}
+  m_Name: Default
+  m_EditorClassIdentifier: 
+  <SpecialMoveConfigs>k__BackingField:
+  - <Name>k__BackingField: "\u5347\u9F99\u62F3"
+    <ResetTime>k__BackingField: 1.5
+    <Priority>k__BackingField: 0
+    <BufferTimeMs>k__BackingField: 200
+    <InputButtons>k__BackingField:
+    - <Button>k__BackingField: 2
+      <ButtonSprite>k__BackingField: 2
+      <DelayTime>k__BackingField: 0.1
+    - <Button>k__BackingField: 168
+      <ButtonSprite>k__BackingField: 8
+      <DelayTime>k__BackingField: 0.1
+    - <Button>k__BackingField: 138
+      <ButtonSprite>k__BackingField: 128
+      <DelayTime>k__BackingField: 0.1
+    - <Button>k__BackingField: 256
+      <ButtonSprite>k__BackingField: 256
+      <DelayTime>k__BackingField: 0.2
+  - <Name>k__BackingField: "\u6CE2\u52A8\u62F3"
+    <ResetTime>k__BackingField: 1.5
+    <Priority>k__BackingField: 0
+    <BufferTimeMs>k__BackingField: 200
+    <InputButtons>k__BackingField:
+    - <Button>k__BackingField: 8
+      <ButtonSprite>k__BackingField: 8
+      <DelayTime>k__BackingField: 0.1
+    - <Button>k__BackingField: 194
+      <ButtonSprite>k__BackingField: 2
+      <DelayTime>k__BackingField: 0.1
+    - <Button>k__BackingField: 256
+      <ButtonSprite>k__BackingField: 256
+      <DelayTime>k__BackingField: 0.2

@@ -15,4 +15,5 @@ public enum ButtonMapping
     Punch = 1 << 8,
     Kick = 1 << 9,
     Block = 1 << 10,
+    Stop = 1 << 11,
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using TMPro;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Dvsilch
 {
@@ -24,13 +23,11 @@ namespace Dvsilch
         [field: SerializeField]
         public SpecialMoveButton SpecialMoveButtonPrefab { get; private set; }
 
-        public PlayerInput PlayerInput { get; private set; }
-
         public SpecialMoveConfig SpecialMoveConfig { get; private set; }
 
-        public InputActionAsset InputActionAsset { get; private set; }
-
         private bool isTriggering;
+
+        private int currentInputButtonIndex;
 
         public bool IsTriggering
         {
@@ -42,7 +39,7 @@ namespace Dvsilch
             }
         }
 
-        public void Init(SpecialMoveConfig specialMoveConfig, InputActionAsset asset)
+        public void Init(SpecialMoveConfig specialMoveConfig)
         {
             SpecialMoveConfig = specialMoveConfig;
             SpecialMoveNameText.text = specialMoveConfig.Name;
@@ -54,7 +51,7 @@ namespace Dvsilch
             foreach (var config in SpecialMoveConfig.InputButtons)
             {
                 var button = Instantiate(SpecialMoveButtonPrefab, ButtonsParent);
-                button.Init(config, asset);
+                button.Init(config);
                 InputButtons.Add(button);
             }
         }
@@ -65,6 +62,7 @@ namespace Dvsilch
             {
                 inputButton.SetActive(false);
             }
+            currentInputButtonIndex = 0;
         }
 
         public async UniTask StartDetecting(PriorityQueue<SpecialMoveExecuteCommand, int> priorityQueue, PlayerLoopTiming timing, CancellationToken ct)
@@ -72,9 +70,8 @@ namespace Dvsilch
             while (true)
             {
                 await UniTask.WaitWhile(() => IsTriggering, timing, ct);
-
                 var success = false;
-                var i = 0;
+
                 foreach (var inputButton in InputButtons)
                 {
                     if (ct.IsCancellationRequested)
@@ -84,16 +81,10 @@ namespace Dvsilch
                     if (success)
                     {
                         Debug.Log($"{SpecialMoveConfig.Name} {inputButton.InputButtonConfig.ButtonSprite}输入检测成功，进入下一阶段判定");
-                        i++;
+                        currentInputButtonIndex++;
                     }
                     else
-                    {
-                        if (i > 0)
-                        {
-                            Debug.Log($"{SpecialMoveConfig.Name} {inputButton.InputButtonConfig.ButtonSprite}输入检测失败，重置");
-                        }
                         break;
-                    }
                 }
 
                 if (success)
@@ -101,15 +92,23 @@ namespace Dvsilch
                     var cmd = new SpecialMoveExecuteCommand(this);
                     cmd.Start(timing, ct).Forget();
                     priorityQueue.Enqueue(cmd, int.MaxValue - SpecialMoveConfig.Priority);
+                    currentInputButtonIndex = 0;
                 }
                 else
                 {
-                    if (i != 0 && !IsTriggering)
-                        ResetButton();
+                    if (currentInputButtonIndex > 0)
+                        Debug.Log($"{SpecialMoveConfig.Name} {InputButtons[currentInputButtonIndex].InputButtonConfig.ButtonSprite}输入检测失败，重置");
+
+                    ResetButton();
                 }
 
                 await UniTask.NextFrame(timing, ct);
             }
+        }
+
+        public void OnActionTriggered(InputInfo inputInfo)
+        {
+            InputButtons[currentInputButtonIndex].SetResult(inputInfo);
         }
     }
 }

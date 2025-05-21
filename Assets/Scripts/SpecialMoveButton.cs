@@ -17,19 +17,7 @@ namespace Dvsilch
 
         public InputButtonConfig InputButtonConfig { get; private set; }
 
-        public InputActionAsset InputActionAsset { get; private set; }
-
-        public const string ACTION_PUNCH = "Punch";
-
-        public const string ACTION_KICK = "Kick";
-
-        public const string ACTION_MOVE = "Move";
-
-        public InputAction PunchAction { get; private set; }
-
-        public InputAction KickAction { get; private set; }
-
-        public InputAction MoveAction { get; private set; }
+        private AutoResetUniTaskCompletionSource<bool> utcs;
 
         private void SetSprite()
         {
@@ -45,7 +33,7 @@ namespace Dvsilch
                 ButtonMapping.RightDown => 3,
                 ButtonMapping.Punch => 9,
                 ButtonMapping.Kick => 10,
-                ButtonMapping.None => 8,
+                ButtonMapping.Stop => 8,
                 _ => -1
             };
 
@@ -55,15 +43,10 @@ namespace Dvsilch
             }
         }
 
-        public void Init(InputButtonConfig config, InputActionAsset asset)
+        public void Init(InputButtonConfig config)
         {
             InputButtonConfig = config;
-            InputActionAsset = asset;
             SetSprite();
-
-            PunchAction = InputActionAsset.FindAction(ACTION_PUNCH);
-            KickAction = InputActionAsset.FindAction(ACTION_KICK);
-            MoveAction = InputActionAsset.FindAction(ACTION_MOVE);
         }
 
         public async UniTask<bool> StartWaiting(PlayerLoopTiming timing, CancellationToken ct)
@@ -71,60 +54,58 @@ namespace Dvsilch
             if (ct.IsCancellationRequested)
                 return false;
 
-            var time = 0f;
+            DelaySetResult(
+                InputButtonConfig.Button == ButtonMapping.Stop,
+                (int)(InputButtonConfig.DelayTime * 1000),
+                timing, ct).Forget();
+            var (isCanceled, isMatch) = await (utcs ??= AutoResetUniTaskCompletionSource<bool>.Create()).Task.SuppressCancellationThrow();
+            return !isCanceled && isMatch;
+        }
 
-            while (time < InputButtonConfig.DelayTime)
+        public void SetResult(InputInfo inputInfo)
+        {
+            if (utcs == null)
+                return;
+
+            var (button, ctx) = inputInfo;
+
+            if (button != ButtonMapping.None)
             {
-                var button = ButtonMapping.None;
+                var match = (button & InputButtonConfig.Button) > 0;
 
-                if (PunchAction.IsPressed())
+                if (match)
                 {
-                    //Debug.Log($"Action: Punch, Phase: {PunchAction.phase}, Interaction: {PunchAction.started}");
-                    button = ButtonMapping.Punch;
+                    SetResult(true);
                 }
-                else if (KickAction.IsPressed())
-                    button = ButtonMapping.Kick;
-                else if (MoveAction.IsPressed())
-                    button = MoveAction.ReadValue<Vector2>().Vector2ButtonMapping();
-
-                if (button != ButtonMapping.None)
+                else
                 {
-                    var match = (button & InputButtonConfig.Button) > 0;
-
-                    if (match)
-                    {
-                        SetActive(true);
-                        return true;
-                    }
-                    else
-                    {
-                        Debug.Log($"当前输入: {button} 不匹配 {InputButtonConfig.Button}");
-                        // 不匹配时，只有按下攻击键，才清空状态
-                        if (PunchAction.phase == InputActionPhase.Started || KickAction.phase == InputActionPhase.Started)
-                        {
-                            return false;
-                        }
-                    }
+                    //Debug.Log($"当前输入: {button} 不匹配 {InputButtonConfig.Button}");
+                    // 不匹配时，只有按下攻击键，才清空状态
+                    if ((button == ButtonMapping.Punch || button == ButtonMapping.Kick) && ctx.phase == InputActionPhase.Started)
+                        SetResult(false);
                 }
-                else if (InputButtonConfig.Button == ButtonMapping.None) // 专门处理空输入
-                {
-                    //var t = InputButtonConfig.DelayTime;
-                    //while (t > 0)
-                    //{
-                    //    await UniTask.NextFrame(timing, ct);
-                    //    if (PunchAction.IsPressed() || KickAction.IsPressed())
-                    //        return false;
-                    //    t -= Time.deltaTime;
-                    //}
-                    SetActive(true);
-                    return true;
-                }
-
-                await UniTask.NextFrame(timing, ct);
-                time += Time.deltaTime;
             }
+        }
 
-            return false;
+        private async UniTaskVoid DelaySetResult(bool result, int delay, PlayerLoopTiming timing, CancellationToken ct)
+        {
+            await UniTask.Delay(delay, delayTiming: timing, cancellationToken: ct);
+            SetResult(result);
+        }
+
+        private void SetResult(bool result)
+        {
+            if (utcs != null)
+            {
+                SetActive(result);
+                utcs.TrySetResult(result);
+                utcs = null;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            SetResult(false);
         }
 
         public void SetActive(bool active)

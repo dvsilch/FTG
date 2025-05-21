@@ -16,7 +16,6 @@ public class SpecialMoveExecuteCommand
     {
         SpecialMoveItem = specialMoveItem;
         RemainingTime = specialMoveItem.SpecialMoveConfig.ResetTime;
-        SpecialMoveItem.IsTriggering = true;
     }
 
     public void Discard()
@@ -45,6 +44,7 @@ public class SpecialMoveExecuteCommand
     public async UniTask Execute(PlayerLoopTiming timing, CancellationToken ct)
     {
         Debug.Log($"{SpecialMoveItem.SpecialMoveConfig.Name} ´¥·¢");
+        SpecialMoveItem.IsTriggering = true;
         while (RemainingTime > 0f)
         {
             RemainingTime -= Time.deltaTime;

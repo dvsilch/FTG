@@ -8,7 +8,7 @@ namespace Dvsilch
     public class SpecialMoveList : MonoBehaviour
     {
         [field: SerializeField]
-        public InputActionAsset InputActionAsset { get; private set; }
+        public PlayerInput PlayerInput { get; private set; }
 
         [field: SerializeField]
         public RectTransform SpecialMoveItemParent { get; private set; }
@@ -25,13 +25,17 @@ namespace Dvsilch
         [field: SerializeField]
         public PlayerLoopTiming PlayerLoopTiming { get; private set; } = PlayerLoopTiming.LastUpdate;
 
+        public const string ACTION_PUNCH = "Punch";
+
+        public const string ACTION_KICK = "Kick";
+
+        public const string ACTION_MOVE = "Move";
+
         public List<SpecialMoveConfig> SpecialMoveConfigs => CharacterSpecialMovesSO.SpecialMoveConfigs;
 
         public Queue<SpecialMoveExecuteCommand> SpecialMoveExecutionQueue { get; private set; }
 
         public PriorityQueue<SpecialMoveExecuteCommand, int> PriorityQueue { get; private set; } = new();
-
-        public SpecialMoveExecuteCommand CurrentSpecialMoveExecuteCommand { get; private set; }
 
         // 流程循环
         // 1 每个招式自身有一个等待输入完成的task，task完成后会将结果先存入优先级队列，这么做是防止同一帧内产生多个招式
@@ -39,9 +43,7 @@ namespace Dvsilch
         // 3 当待执行队列有数据时，取出一个合法的招式执行，执行完毕后回到1
         private void Start()
         {
-            InputActionAsset = Instantiate(InputActionAsset);
-            InputActionAsset.Enable();
-
+            PlayerInput.onActionTriggered += OnActionTriggered;
             SpecialMoveExecutionQueue ??= new();
 
             SpecialMoves?.Clear();
@@ -51,7 +53,7 @@ namespace Dvsilch
             foreach (var config in SpecialMoveConfigs)
             {
                 var item = Instantiate(SpecialMoveItemTemplatePrefab, SpecialMoveItemParent);
-                item.Init(config, InputActionAsset);
+                item.Init(config);
 
                 // 生产 对应上述流程1
                 item.StartDetecting(PriorityQueue, PlayerLoopTiming, destroyCancellationToken).Forget();
@@ -61,9 +63,40 @@ namespace Dvsilch
             StartExecuting().Forget();
         }
 
-        private void OnDestroy()
+        private void OnActionTriggered(InputAction.CallbackContext ctx)
         {
-            DestroyImmediate(InputActionAsset);
+            var button = ButtonMapping.None;
+
+            switch (ctx.action.name)
+            {
+                case ACTION_PUNCH:
+                    Debug.Log($"Action: Punch, Phase: {ctx.phase}, Interaction: {ctx.interaction}");
+                    if (ctx.performed)
+                        button = ButtonMapping.Punch;
+                    break;
+
+                case ACTION_KICK:
+                    Debug.Log($"Action: Kick, Phase: {ctx.phase}, Interaction: {ctx.interaction}");
+                    if (ctx.performed)
+                        button = ButtonMapping.Kick;
+                    break;
+
+                case ACTION_MOVE:
+                    button = ctx.ReadValue<Vector2>().Vector2ButtonMapping();
+                    break;
+
+                default:
+                    break;
+            }
+
+            var inputInfo = new InputInfo
+            {
+                Button = button,
+                Ctx = ctx
+            };
+
+            foreach (var item in SpecialMoves)
+                item.OnActionTriggered(inputInfo);
         }
 
         // 消费
@@ -80,18 +113,15 @@ namespace Dvsilch
                 }
 
                 // 消费 对应流程3
-                SpecialMoveExecuteCommand cmd = null;
-                while (SpecialMoveExecutionQueue.TryDequeue(out cmd))
+                SpecialMoveExecuteCommand moveCmd = null;
+                while (SpecialMoveExecutionQueue.TryDequeue(out var cmd) && cmd.IsValid)
                 {
-                    if (cmd.IsValid)
-                        break;
+                    moveCmd = cmd;
+                    break;
                 }
-                if (cmd != null)
-                {
-                    CurrentSpecialMoveExecuteCommand = cmd;
-                    await cmd.Execute(PlayerLoopTiming, destroyCancellationToken);
-                    CurrentSpecialMoveExecuteCommand = null;
-                }
+
+                if (moveCmd != null)
+                    await moveCmd.Execute(PlayerLoopTiming, destroyCancellationToken);
             }
         }
     }

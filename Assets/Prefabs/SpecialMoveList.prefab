@@ -283,12 +283,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4996adcfbb471ae40a802551298edea4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <InputActionAsset>k__BackingField: {fileID: -944628639613478452, guid: 814e6bd398b22d54f9e12157384e7fd4,
-    type: 3}
+  <PlayerInput>k__BackingField: {fileID: 0}
   <SpecialMoveItemParent>k__BackingField: {fileID: 2340294964866703416}
   <SpecialMoveItemTemplatePrefab>k__BackingField: {fileID: 1598203276965863560, guid: 619be4cd510be6e4e9887a06b8a4c796,
     type: 3}
   <SpecialMoves>k__BackingField: []
   <CharacterSpecialMovesSO>k__BackingField: {fileID: 11400000, guid: d965706d238b5bf439de3cdc4c9b2178,
     type: 2}
-  <PlayerLoopTiming>k__BackingField: 8
+  <PlayerLoopTiming>k__BackingField: 9

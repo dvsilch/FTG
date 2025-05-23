@@ -842,11 +842,6 @@ PrefabInstance:
       propertyPath: <PlayerInput>k__BackingField
       value: 
       objectReference: {fileID: 1297550514}
-    - target: {fileID: 473504473374181881, guid: 4fb2ff39f661c2e408c8078ba8e33468,
-        type: 3}
-      propertyPath: <PlayerLoopTiming>k__BackingField
-      value: 8
-      objectReference: {fileID: 0}
     - target: {fileID: 2340294964866703416, guid: 4fb2ff39f661c2e408c8078ba8e33468,
         type: 3}
       propertyPath: m_SizeDelta.y

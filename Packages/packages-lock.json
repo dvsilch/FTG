@@ -70,7 +70,7 @@
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "9de354d7f5136219bc40419ca3f9833ae70b87a8"
+      "hash": "c5650c55d417ecac6fc3d8c9ae379d2a92b1b69d"
     },
     "com.cysharp.zlogger": {
       "version": "https://github.com/Cysharp/ZLogger.git?path=src/ZLogger.Unity/Assets/ZLogger.Unity",

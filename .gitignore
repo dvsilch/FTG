@@ -75,8 +75,11 @@ crashlytics-build.properties
 /[Aa]ssets/[Pp]ackages/
 /[Aa]ssets/[Pp]ackages.meta
 
-/[Aa]ssets/[Mm]atchData/*
-/[Aa]ssets/[Mm]atchData.meta
-
 /[Aa]ssets/[Ss]amples/*
 /[Aa]ssets/[Ss]amples.meta
+
+/[Aa]ssets/Infinity Code/Ultimate Editor Enhancer Settings/*
+/[Aa]ssets/Infinity Code/Ultimate Editor Enhancer Settings.meta
+
+// CodeRush files
+.cr

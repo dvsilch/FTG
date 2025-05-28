@@ -63,13 +63,6 @@ namespace Dvsilch
             // 写一个根据config生成的observable流
             // 这个流会在config的delayTime内等待输入
             Observable<Unit> specialObservable = null;
-            foreach (var item in config.InputButtons)
-            {
-                var timeoutObservable = Observable.Timer(TimeSpan.FromSeconds(item.DelayTime))
-                    .Select(_ => ButtonMapping.None);
-
-                var inputObservable = inputStream.Where(button => (button & item.Button) > 0);
-            }
         }
 
         public static ButtonMapping Vector2ButtonMapping(Vector2 vector2)

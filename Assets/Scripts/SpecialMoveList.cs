@@ -31,6 +31,10 @@ namespace Dvsilch
 
         public const string ACTION_MOVE = "Move";
 
+        public const string ACTION_JUMP = "Jump";
+
+        public const string ACTION_LOOK = "Look";
+
         public List<SpecialMoveConfig> SpecialMoveConfigs => CharacterSpecialMovesSO.SpecialMoveConfigs;
 
         public Queue<SpecialMoveExecuteCommand> SpecialMoveExecutionQueue { get; private set; }
@@ -83,6 +87,27 @@ namespace Dvsilch
 
                 case ACTION_MOVE:
                     button = ctx.ReadValue<Vector2>().Vector2ButtonMapping();
+                    break;
+
+                case ACTION_JUMP:
+                    if (ctx.started)
+                    {
+                    }
+                    if (ctx.canceled)
+                    {
+                    }
+                    if (ctx.performed)
+                    {
+                        Debug.Log($"Action: Jump, Phase: {ctx.phase}, Interaction: {ctx.interaction}");
+                    }
+
+                    break;
+
+                case ACTION_LOOK:
+                    break;
+
+                case "VerticalAxisMultiTap":
+                    Debug.Log($"Action: VerticalAxisMultiTap, Phase: {ctx.phase}, Interaction: {ctx.interaction}");
                     break;
 
                 default:
